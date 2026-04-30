@@ -1,9 +1,20 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Table: sedes
+CREATE TABLE public.sedes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nombre TEXT NOT NULL,
+  direccion TEXT NOT NULL,
+  ciudad TEXT NOT NULL,
+  estado TEXT DEFAULT 'activa', -- activa, inactiva
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Table: clientes
 CREATE TABLE public.clientes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sede_id UUID REFERENCES public.sedes(id), -- Opcional
   nombre TEXT NOT NULL,
   telefono TEXT NOT NULL,
   direccion TEXT NOT NULL,
@@ -20,12 +31,24 @@ CREATE TABLE public.productos (
   stock INTEGER DEFAULT 0
 );
 
+-- Table: conductores (Empleados)
+CREATE TABLE public.conductores (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  sede_id UUID REFERENCES public.sedes(id) NOT NULL,
+  nombre TEXT NOT NULL,
+  telefono TEXT NOT NULL,
+  vehiculo TEXT,
+  estado TEXT DEFAULT 'activo' -- activo, ocupado, fuera_de_servicio
+);
+
 -- Table: pedidos
 CREATE TABLE public.pedidos (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   cliente_id UUID REFERENCES public.clientes(id),
-  origen TEXT DEFAULT 'web',
-  estado TEXT DEFAULT 'pendiente', -- pendiente, validado, en_camino, entregado, cancelado
+  sede_id UUID REFERENCES public.sedes(id) NOT NULL,
+  conductor_id UUID REFERENCES public.conductores(id),
+  origen TEXT DEFAULT 'web', -- web, manual_crm, telefono, whatsapp
+  estado TEXT DEFAULT 'pendiente', -- pendiente, validado, asignado, en_camino, entregado, no_entregado, cancelado
   total NUMERIC(10, 2) NOT NULL,
   metodo_pago TEXT,
   notas TEXT,
@@ -33,45 +56,39 @@ CREATE TABLE public.pedidos (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table: conductores
-CREATE TABLE public.conductores (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  nombre TEXT NOT NULL,
-  telefono TEXT NOT NULL,
-  vehiculo TEXT,
-  estado TEXT DEFAULT 'activo'
-);
-
--- Table: asignaciones
+-- Table: asignaciones (Historial de cambios de estado / asignaciones por pedido)
+-- Simplificada ya que las ganancias fueron removidas
 CREATE TABLE public.asignaciones (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  pedido_id UUID REFERENCES public.pedidos(id),
-  conductor_id UUID REFERENCES public.conductores(id),
+  pedido_id UUID REFERENCES public.pedidos(id) NOT NULL,
+  conductor_id UUID REFERENCES public.conductores(id) NOT NULL,
   estado TEXT DEFAULT 'asignado',
-  ganancia_conductor NUMERIC(10, 2),
-  pago_estado TEXT DEFAULT 'pendiente' -- pendiente, pagado
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- RLS (Row Level Security) - Basic Setup (Assuming CRM admin has full access and web can insert)
+-- RLS (Row Level Security) - Basic Setup
+ALTER TABLE public.sedes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedidos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.productos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conductores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.asignaciones ENABLE ROW LEVEL SECURITY;
 
--- Allow anon inserts for web
+-- Allow anon inserts for web (For MVP/Testing without Auth)
 CREATE POLICY "Allow public inserts on clientes" ON public.clientes FOR INSERT TO anon, authenticated WITH CHECK (true);
 CREATE POLICY "Allow public inserts on pedidos" ON public.pedidos FOR INSERT TO anon, authenticated WITH CHECK (true);
 
--- Allow full access for anon for now (development only - IN PRODUCTION SHOULD BE RESTRICTED TO AUTHENTICATED)
+-- Allow full access for anon for now (development only)
+CREATE POLICY "Allow all on sedes" ON public.sedes FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on clientes" ON public.clientes FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on pedidos" ON public.pedidos FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on productos" ON public.productos FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on conductores" ON public.conductores FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on asignaciones" ON public.asignaciones FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
--- Enable realtime for pedidos and asignaciones
+-- Enable realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE pedidos;
 ALTER PUBLICATION supabase_realtime ADD TABLE asignaciones;
 ALTER PUBLICATION supabase_realtime ADD TABLE clientes;
 ALTER PUBLICATION supabase_realtime ADD TABLE conductores;
+ALTER PUBLICATION supabase_realtime ADD TABLE sedes;

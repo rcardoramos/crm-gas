@@ -1,9 +1,36 @@
 export type Database = {
   public: {
     Tables: {
+      sedes: {
+        Row: {
+          id: string
+          nombre: string
+          direccion: string
+          ciudad: string
+          estado: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          nombre: string
+          direccion: string
+          ciudad: string
+          estado?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          nombre?: string
+          direccion?: string
+          ciudad?: string
+          estado?: string
+          created_at?: string
+        }
+      }
       clientes: {
         Row: {
           id: string
+          sede_id: string | null
           nombre: string
           telefono: string
           direccion: string
@@ -13,6 +40,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          sede_id?: string | null
           nombre: string
           telefono: string
           direccion: string
@@ -22,6 +50,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          sede_id?: string | null
           nombre?: string
           telefono?: string
           direccion?: string
@@ -34,6 +63,8 @@ export type Database = {
         Row: {
           id: string
           cliente_id: string | null
+          sede_id: string
+          conductor_id: string | null
           origen: string
           estado: string
           total: number
@@ -45,6 +76,8 @@ export type Database = {
         Insert: {
           id?: string
           cliente_id?: string | null
+          sede_id: string
+          conductor_id?: string | null
           origen?: string
           estado?: string
           total: number
@@ -56,6 +89,8 @@ export type Database = {
         Update: {
           id?: string
           cliente_id?: string | null
+          sede_id?: string
+          conductor_id?: string | null
           origen?: string
           estado?: string
           total?: number
@@ -88,6 +123,7 @@ export type Database = {
       conductores: {
         Row: {
           id: string
+          sede_id: string
           nombre: string
           telefono: string
           vehiculo: string | null
@@ -95,6 +131,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          sede_id: string
           nombre: string
           telefono: string
           vehiculo?: string | null
@@ -102,6 +139,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          sede_id?: string
           nombre?: string
           telefono?: string
           vehiculo?: string | null
@@ -111,27 +149,24 @@ export type Database = {
       asignaciones: {
         Row: {
           id: string
-          pedido_id: string | null
-          conductor_id: string | null
+          pedido_id: string
+          conductor_id: string
           estado: string
-          ganancia_conductor: number | null
-          pago_estado: string
+          created_at: string
         }
         Insert: {
           id?: string
-          pedido_id?: string | null
-          conductor_id?: string | null
+          pedido_id: string
+          conductor_id: string
           estado?: string
-          ganancia_conductor?: number | null
-          pago_estado?: string
+          created_at?: string
         }
         Update: {
           id?: string
-          pedido_id?: string | null
-          conductor_id?: string | null
+          pedido_id?: string
+          conductor_id?: string
           estado?: string
-          ganancia_conductor?: number | null
-          pago_estado?: string
+          created_at?: string
         }
       }
     }

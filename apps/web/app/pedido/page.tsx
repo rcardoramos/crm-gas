@@ -82,6 +82,15 @@ export default function PedidoPage() {
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="sede">Zona / Distrito</Label>
+            <select id="sede" required defaultValue="" className="flex h-11 w-full rounded-xl border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+              <option value="" disabled>Selecciona tu zona...</option>
+              <option value="sede-1">Lima Norte (Comas, Los Olivos, SMP)</option>
+              <option value="sede-2">Lima Sur (Chorrillos, SJM, VMT)</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="direccion">Dirección exacta</Label>
             <Input id="direccion" required placeholder="Av. Principal 123" />
           </div>
