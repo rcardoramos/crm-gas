@@ -14,8 +14,10 @@ CREATE TABLE public.sedes (
 -- Table: clientes
 CREATE TABLE public.clientes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  auth_id UUID UNIQUE, -- Linked to auth.users
   sede_id UUID REFERENCES public.sedes(id), -- Opcional
   nombre TEXT NOT NULL,
+  dni TEXT UNIQUE,
   telefono TEXT NOT NULL,
   direccion TEXT NOT NULL,
   referencia TEXT,
@@ -34,6 +36,7 @@ CREATE TABLE public.productos (
 -- Table: conductores (Empleados)
 CREATE TABLE public.conductores (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  auth_id UUID UNIQUE, -- Linked to auth.users
   sede_id UUID REFERENCES public.sedes(id) NOT NULL,
   nombre TEXT NOT NULL,
   telefono TEXT NOT NULL,
@@ -66,6 +69,22 @@ CREATE TABLE public.asignaciones (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Table: promociones
+CREATE TABLE public.promociones (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  titulo TEXT NOT NULL,
+  descripcion TEXT NOT NULL,
+  codigo TEXT UNIQUE NOT NULL,
+  fecha_inicio TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  fecha_fin TIMESTAMP WITH TIME ZONE,
+  tipo_descuento TEXT DEFAULT 'monto_fijo', -- monto_fijo, porcentaje
+  valor_descuento NUMERIC(10, 2) NOT NULL,
+  estado TEXT DEFAULT 'activa', -- activa, pausada, expirada
+  color_theme TEXT DEFAULT 'from-blue-500 to-indigo-600',
+  usos INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- RLS (Row Level Security) - Basic Setup
 ALTER TABLE public.sedes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clientes ENABLE ROW LEVEL SECURITY;
@@ -73,6 +92,7 @@ ALTER TABLE public.pedidos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.productos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conductores ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.asignaciones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.promociones ENABLE ROW LEVEL SECURITY;
 
 -- Allow anon inserts for web (For MVP/Testing without Auth)
 CREATE POLICY "Allow public inserts on clientes" ON public.clientes FOR INSERT TO anon, authenticated WITH CHECK (true);
@@ -85,6 +105,7 @@ CREATE POLICY "Allow all on pedidos" ON public.pedidos FOR ALL TO anon, authenti
 CREATE POLICY "Allow all on productos" ON public.productos FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on conductores" ON public.conductores FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on asignaciones" ON public.asignaciones FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all on promociones" ON public.promociones FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- Enable realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE pedidos;
@@ -92,3 +113,4 @@ ALTER PUBLICATION supabase_realtime ADD TABLE asignaciones;
 ALTER PUBLICATION supabase_realtime ADD TABLE clientes;
 ALTER PUBLICATION supabase_realtime ADD TABLE conductores;
 ALTER PUBLICATION supabase_realtime ADD TABLE sedes;
+ALTER PUBLICATION supabase_realtime ADD TABLE promociones;

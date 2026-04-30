@@ -37,6 +37,9 @@ export default function RootLayout({
             <Link href="/clientes" className="flex items-center px-3 py-2 text-[14px] font-medium rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 transition-colors">
               Clientes
             </Link>
+            <Link href="/promociones" className="flex items-center px-3 py-2 text-[14px] font-medium rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 transition-colors">
+              Campañas
+            </Link>
           </nav>
           <div className="p-4 border-t border-zinc-200/60">
             <div className="flex items-center px-2">

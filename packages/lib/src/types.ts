@@ -30,8 +30,10 @@ export type Database = {
       clientes: {
         Row: {
           id: string
+          auth_id: string | null
           sede_id: string | null
           nombre: string
+          dni: string | null
           telefono: string
           direccion: string
           referencia: string | null
@@ -40,8 +42,10 @@ export type Database = {
         }
         Insert: {
           id?: string
+          auth_id?: string | null
           sede_id?: string | null
           nombre: string
+          dni?: string | null
           telefono: string
           direccion: string
           referencia?: string | null
@@ -50,8 +54,10 @@ export type Database = {
         }
         Update: {
           id?: string
+          auth_id?: string | null
           sede_id?: string | null
           nombre?: string
+          dni?: string | null
           telefono?: string
           direccion?: string
           referencia?: string | null
@@ -123,6 +129,7 @@ export type Database = {
       conductores: {
         Row: {
           id: string
+          auth_id: string | null
           sede_id: string
           nombre: string
           telefono: string
@@ -131,6 +138,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          auth_id?: string | null
           sede_id: string
           nombre: string
           telefono: string
@@ -139,6 +147,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          auth_id?: string | null
           sede_id?: string
           nombre?: string
           telefono?: string
@@ -166,6 +175,50 @@ export type Database = {
           pedido_id?: string
           conductor_id?: string
           estado?: string
+          created_at?: string
+        }
+      }
+      promociones: {
+        Row: {
+          id: string
+          titulo: string
+          descripcion: string
+          codigo: string
+          fecha_inicio: string
+          fecha_fin: string | null
+          tipo_descuento: string
+          valor_descuento: number
+          estado: string
+          color_theme: string
+          usos: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          titulo: string
+          descripcion: string
+          codigo: string
+          fecha_inicio?: string
+          fecha_fin?: string | null
+          tipo_descuento?: string
+          valor_descuento: number
+          estado?: string
+          color_theme?: string
+          usos?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          titulo?: string
+          descripcion?: string
+          codigo?: string
+          fecha_inicio?: string
+          fecha_fin?: string | null
+          tipo_descuento?: string
+          valor_descuento?: number
+          estado?: string
+          color_theme?: string
+          usos?: number
           created_at?: string
         }
       }
