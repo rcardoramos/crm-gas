@@ -110,7 +110,7 @@ export default function DriverAppPage() {
 
   return (
     <div className="min-h-screen bg-[#F5EBE1] flex justify-center">
-      <div className="w-full max-w-md bg-white min-h-screen shadow-2xl shadow-black/5 relative flex flex-col">
+      <div className="w-full max-w-md bg-white min-h-screen shadow-2xl shadow-black/5 relative flex flex-col text-zinc-900">
         
         {/* Header App Driver */}
         <header className="bg-[#003223] text-[#F5EBE1] p-5 pb-8 rounded-b-[2rem] shadow-md z-10">
