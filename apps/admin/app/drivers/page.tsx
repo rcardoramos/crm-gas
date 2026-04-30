@@ -2,10 +2,22 @@
 
 import { useState } from "react";
 
-const MOCK_CONDUCTORES = [
-  { id: "1", nombre: "Pedro L.", telefono: "999-123-456", sede: "Lima Norte", estado: "activo", carga_actual: 2, pedidos_hoy: 12, vehiculo: "Moto FRC-123" },
-  { id: "2", nombre: "Jorge M.", telefono: "988-765-432", sede: "Lima Sur", estado: "ocupado", carga_actual: 1, pedidos_hoy: 8, vehiculo: "Furgoneta A1-B2" },
-  { id: "3", nombre: "Carlos S.", telefono: "977-111-222", sede: "Lima Norte", estado: "fuera_de_servicio", carga_actual: 0, pedidos_hoy: 5, vehiculo: "Moto XYZ-999" },
+type Driver = {
+  id: string;
+  nombre: string;
+  telefono: string;
+  sede: string;
+  estado: "activo" | "ocupado" | "fuera_de_servicio";
+  carga_actual: number;
+  pedidos_hoy: number;
+  vehiculo: string;
+  placa: string;
+};
+
+const MOCK_DRIVERS: Driver[] = [
+  { id: "1", nombre: "Pedro L.", telefono: "999-123-456", sede: "Lima Norte", estado: "activo", carga_actual: 2, pedidos_hoy: 12, vehiculo: "Moto", placa: "FRC-123" },
+  { id: "2", nombre: "Jorge M.", telefono: "988-765-432", sede: "Lima Sur", estado: "ocupado", carga_actual: 1, pedidos_hoy: 8, vehiculo: "Furgoneta", placa: "A1-B2" },
+  { id: "3", nombre: "Carlos S.", telefono: "977-111-222", sede: "Lima Norte", estado: "fuera_de_servicio", carga_actual: 0, pedidos_hoy: 5, vehiculo: "Moto", placa: "XYZ-999" },
 ];
 
 const estadoColors: Record<string, string> = {
@@ -16,75 +28,321 @@ const estadoColors: Record<string, string> = {
 
 const estadoLabels: Record<string, string> = {
   activo: "🟢 Disponible",
-  ocupado: "🟠 Ocupado (En ruta)",
+  ocupado: "🟠 En ruta",
   fuera_de_servicio: "⚫ Fuera de servicio",
 };
 
-export default function ConductoresPage() {
-  const [conductores] = useState(MOCK_CONDUCTORES);
+const emptyForm = {
+  nombre: "",
+  telefono: "",
+  sede: "Lima Norte",
+  vehiculo: "Moto",
+  placa: "",
+};
+
+const inputClass = "w-full h-9 px-3 text-[13px] text-zinc-900 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 bg-white placeholder:text-zinc-400";
+const selectClass = "w-full h-9 px-3 text-[13px] text-zinc-900 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-400 bg-white";
+const labelClass = "block text-[12px] font-semibold text-zinc-600 mb-1";
+
+export default function DriversPage() {
+  const [drivers, setDrivers] = useState<Driver[]>(MOCK_DRIVERS);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
+  const [detailDriver, setDetailDriver] = useState<Driver | null>(null);
+
+  const openNew = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setIsModalOpen(true);
+  };
+
+  const openEdit = (d: Driver) => {
+    setEditingId(d.id);
+    setForm({ nombre: d.nombre, telefono: d.telefono, sede: d.sede, vehiculo: d.vehiculo, placa: d.placa });
+    setIsModalOpen(true);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+
+    // TODO: Supabase insert/update cuando esté configurado:
+    // if (editingId) { await supabase.from('drivers').update(form).eq('id', editingId); }
+    // else { await supabase.from('drivers').insert({ ...form, estado: 'activo', carga_actual: 0, pedidos_hoy: 0 }); }
+
+    setTimeout(() => {
+      if (editingId) {
+        setDrivers(prev => prev.map(d => d.id === editingId ? { ...d, ...form } : d));
+        if (detailDriver?.id === editingId) setDetailDriver(prev => prev ? { ...prev, ...form } : null);
+      } else {
+        setDrivers(prev => [...prev, {
+          id: String(Date.now()),
+          ...form,
+          estado: "activo",
+          carga_actual: 0,
+          pedidos_hoy: 0,
+        }]);
+      }
+      setSaving(false);
+      setIsModalOpen(false);
+    }, 500);
+  };
+
+  const handleChangeEstado = (id: string, nuevoEstado: Driver["estado"]) => {
+    setDrivers(prev => prev.map(d => d.id === id ? { ...d, estado: nuevoEstado } : d));
+    setDetailDriver(prev => prev?.id === id ? { ...prev, estado: nuevoEstado } : prev);
+  };
+
+  const handleDelete = (id: string) => {
+    if (!confirm("¿Eliminar este driver del sistema?")) return;
+    setDrivers(prev => prev.filter(d => d.id !== id));
+    setDetailDriver(null);
+  };
+
+  const disponibles = drivers.filter(d => d.estado === "activo").length;
+  const enRuta = drivers.filter(d => d.estado === "ocupado").length;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-zinc-900 tracking-tight">Conductores</h1>
-          <p className="text-[13px] text-zinc-500 mt-1">Gestión de flota, disponibilidad y carga de trabajo.</p>
+    <>
+      <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-zinc-900 tracking-tight">Drivers</h1>
+            <p className="text-[13px] text-zinc-500 mt-1">Gestión de flota, disponibilidad y carga de trabajo.</p>
+          </div>
+          <button
+            onClick={openNew}
+            className="bg-zinc-900 text-white px-4 py-2 rounded-md text-[13px] font-medium hover:bg-zinc-700 transition-colors shadow-sm"
+          >
+            + Agregar Driver
+          </button>
         </div>
-        <button className="bg-zinc-900 text-white px-4 py-2 rounded-md text-[13px] font-medium hover:bg-zinc-800 transition-colors shadow-sm">
-          + Agregar Conductor
-        </button>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {conductores.map(conductor => (
-          <div key={conductor.id} className="bg-white rounded-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] border border-zinc-200/60 p-5 flex flex-col">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 font-bold">
-                  {conductor.nombre.charAt(0)}
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white border border-zinc-200/60 rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
+            <p className="text-[12px] text-zinc-500 mb-1">Total Drivers</p>
+            <p className="text-2xl font-bold text-zinc-900">{drivers.length}</p>
+          </div>
+          <div className="bg-white border border-zinc-200/60 rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
+            <p className="text-[12px] text-zinc-500 mb-1">Disponibles</p>
+            <p className="text-2xl font-bold text-emerald-600">{disponibles}</p>
+          </div>
+          <div className="bg-white border border-zinc-200/60 rounded-xl p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.02)]">
+            <p className="text-[12px] text-zinc-500 mb-1">En Ruta</p>
+            <p className="text-2xl font-bold text-orange-500">{enRuta}</p>
+          </div>
+        </div>
+
+        {/* Cards de drivers */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {drivers.map(driver => (
+            <div key={driver.id} className="bg-white rounded-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.02)] border border-zinc-200/60 p-5 flex flex-col">
+              {/* Header card */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 font-black text-[16px]">
+                    {driver.nombre.charAt(0)}
+                  </div>
+                  <div>
+                    <h3 className="text-[15px] font-semibold text-zinc-900">{driver.nombre}</h3>
+                    <p className="text-[12px] text-zinc-500">{driver.sede}</p>
+                  </div>
+                </div>
+                <span className={`px-2 py-1 rounded-md text-[11px] font-medium ${estadoColors[driver.estado]}`}>
+                  {estadoLabels[driver.estado]}
+                </span>
+              </div>
+
+              {/* Stats del driver */}
+              <div className="grid grid-cols-2 gap-4 py-4 border-y border-zinc-100 mb-4">
+                <div>
+                  <span className="text-[12px] text-zinc-500 block mb-0.5">En ruta</span>
+                  <span className="text-lg font-bold text-zinc-900">{driver.carga_actual} <span className="text-[11px] font-normal text-zinc-400">pedidos</span></span>
                 </div>
                 <div>
-                  <h3 className="text-[15px] font-semibold text-zinc-900">{conductor.nombre}</h3>
-                  <p className="text-[12px] text-zinc-500">{conductor.sede}</p>
+                  <span className="text-[12px] text-zinc-500 block mb-0.5">Completados hoy</span>
+                  <span className="text-lg font-bold text-zinc-900">{driver.pedidos_hoy}</span>
                 </div>
               </div>
-              <span className={`px-2 py-1 rounded-md text-[11px] font-medium ${estadoColors[conductor.estado]}`}>
-                {estadoLabels[conductor.estado]}
-              </span>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4 py-4 border-y border-zinc-100 mb-4">
-              <div className="flex flex-col">
-                <span className="text-[12px] text-zinc-500 mb-1">Carga Actual</span>
-                <span className="text-lg font-semibold text-zinc-900">
-                  {conductor.carga_actual} <span className="text-[12px] font-normal text-zinc-400">pedidos en ruta</span>
-                </span>
+              {/* Info */}
+              <div className="mt-auto space-y-1.5">
+                <div className="flex justify-between text-[13px]">
+                  <span className="text-zinc-400">Teléfono</span>
+                  <span className="text-zinc-700 font-medium">{driver.telefono}</span>
+                </div>
+                <div className="flex justify-between text-[13px]">
+                  <span className="text-zinc-400">Vehículo</span>
+                  <span className="text-zinc-700 font-medium">{driver.vehiculo} · {driver.placa}</span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[12px] text-zinc-500 mb-1">Completados Hoy</span>
-                <span className="text-lg font-semibold text-zinc-900">
-                  {conductor.pedidos_hoy}
-                </span>
-              </div>
-            </div>
 
-            <div className="mt-auto space-y-2">
-              <div className="flex justify-between text-[13px] text-zinc-600">
-                <span className="font-medium text-zinc-400">Teléfono</span>
-                <span>{conductor.telefono}</span>
-              </div>
-              <div className="flex justify-between text-[13px] text-zinc-600">
-                <span className="font-medium text-zinc-400">Vehículo</span>
-                <span>{conductor.vehiculo}</span>
+              {/* Acciones */}
+              <div className="flex gap-2 mt-5">
+                <button
+                  onClick={() => setDetailDriver(driver)}
+                  className="flex-1 bg-zinc-50 border border-zinc-200 text-zinc-700 py-2 rounded-lg text-[12px] font-bold hover:bg-zinc-100 transition-colors"
+                >
+                  Ver Detalle
+                </button>
+                <button
+                  onClick={() => openEdit(driver)}
+                  className="flex-1 bg-zinc-50 border border-zinc-200 text-zinc-700 py-2 rounded-lg text-[12px] font-bold hover:bg-zinc-100 transition-colors"
+                >
+                  ✏️ Editar
+                </button>
               </div>
             </div>
-            
-            <button className="mt-5 w-full bg-[#FBFBFB] border border-zinc-200 text-zinc-700 py-2 rounded-md text-[13px] font-medium hover:bg-zinc-100 transition-colors">
-              Ver Historial
-            </button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+
+      {/* ── MODAL AGREGAR / EDITAR DRIVER ── */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsModalOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-in zoom-in-95 fade-in duration-200 text-zinc-900">
+            <div className="flex items-center justify-between p-5 border-b border-zinc-100">
+              <div>
+                <h2 className="text-[16px] font-bold">{editingId ? "Editar Driver" : "Nuevo Driver"}</h2>
+                <p className="text-[12px] text-zinc-500 mt-0.5">Datos del conductor de la flota</p>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-500 text-lg">×</button>
+            </div>
+
+            <form onSubmit={handleSave} className="p-5 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className={labelClass}>Nombre completo *</label>
+                  <input name="nombre" required value={form.nombre} onChange={handleChange} placeholder="Ej. Pedro López" className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Teléfono *</label>
+                  <input name="telefono" required type="tel" value={form.telefono} onChange={handleChange} placeholder="999 999 999" className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Sede</label>
+                  <select name="sede" value={form.sede} onChange={handleChange} className={selectClass}>
+                    <option>Lima Norte</option>
+                    <option>Lima Sur</option>
+                    <option>Lima Centro</option>
+                    <option>Lima Este</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Tipo de Vehículo</label>
+                  <select name="vehiculo" value={form.vehiculo} onChange={handleChange} className={selectClass}>
+                    <option>Moto</option>
+                    <option>Furgoneta</option>
+                    <option>Camioneta</option>
+                    <option>Bicicleta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>Placa *</label>
+                  <input name="placa" required value={form.placa} onChange={handleChange} placeholder="ABC-123" className={inputClass} />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-10 rounded-lg border border-zinc-200 text-[13px] font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">
+                  Cancelar
+                </button>
+                <button type="submit" disabled={saving} className="flex-1 h-10 rounded-lg bg-zinc-900 text-white text-[13px] font-bold hover:bg-zinc-700 transition-colors disabled:opacity-60">
+                  {saving ? "Guardando..." : editingId ? "Guardar Cambios" : "Agregar Driver"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL DETALLE DRIVER ── */}
+      {detailDriver && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setDetailDriver(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 animate-in zoom-in-95 fade-in duration-200 text-zinc-900">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-zinc-100">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-700 font-black text-xl">
+                  {detailDriver.nombre.charAt(0)}
+                </div>
+                <div>
+                  <h2 className="text-[16px] font-bold text-zinc-900">{detailDriver.nombre}</h2>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${estadoColors[detailDriver.estado]}`}>
+                    {estadoLabels[detailDriver.estado]}
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setDetailDriver(null)} className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-500 text-lg">×</button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* Info */}
+              <div className="bg-zinc-50 rounded-xl p-4 space-y-2">
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Información</p>
+                {[
+                  { label: "Teléfono", value: detailDriver.telefono },
+                  { label: "Sede", value: detailDriver.sede },
+                  { label: "Vehículo", value: `${detailDriver.vehiculo} · ${detailDriver.placa}` },
+                  { label: "Pedidos hoy", value: String(detailDriver.pedidos_hoy) },
+                  { label: "En ruta", value: `${detailDriver.carga_actual} pedidos` },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex justify-between text-[13px]">
+                    <span className="text-zinc-500">{label}</span>
+                    <span className="font-semibold text-zinc-900">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Cambiar estado */}
+              <div>
+                <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["activo", "ocupado", "fuera_de_servicio"] as const).map(estado => (
+                    <button
+                      key={estado}
+                      onClick={() => handleChangeEstado(detailDriver.id, estado)}
+                      className={`py-1.5 px-1 rounded-lg text-[10px] font-bold border transition-all ${
+                        detailDriver.estado === estado
+                          ? "bg-zinc-900 text-white border-zinc-900"
+                          : "bg-white text-zinc-700 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-50"
+                      }`}
+                    >
+                      {estado === "activo" ? "Disponible" : estado === "ocupado" ? "En Ruta" : "Inactivo"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-zinc-100 flex gap-2">
+              <button
+                onClick={() => { setDetailDriver(null); openEdit(detailDriver); }}
+                className="flex-1 h-9 rounded-lg border border-zinc-200 text-[13px] font-bold text-zinc-700 hover:bg-zinc-50 transition-colors"
+              >
+                ✏️ Editar
+              </button>
+              <button
+                onClick={() => handleDelete(detailDriver.id)}
+                className="flex-1 h-9 rounded-lg bg-red-50 border border-red-200 text-[13px] font-bold text-red-600 hover:bg-red-100 transition-colors"
+              >
+                🗑 Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
