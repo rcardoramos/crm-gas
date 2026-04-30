@@ -1,0 +1,5 @@
+[
+  { "id": "1", "nombre": "Pedro L.", "telefono": "999123456", "sede": "Lima Norte", "vehiculo": "Moto", "placa": "FRC-123" },
+  { "id": "2", "nombre": "Jorge M.", "telefono": "988765432", "sede": "Lima Sur", "vehiculo": "Furgoneta", "placa": "A1-B2" },
+  { "id": "3", "nombre": "Carlos S.", "telefono": "977111222", "sede": "Lima Norte", "vehiculo": "Moto", "placa": "XYZ-999" }
+]

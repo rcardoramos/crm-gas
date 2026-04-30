@@ -15,6 +15,10 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
 
+  // Ocultar sidebar SOLO en la app del driver (móvil)
+  // No ocultar en /drivers (que es la gestión del CRM)
+  if (pathname === "/driver" || pathname.startsWith("/driver/")) return null;
+
   return (
     <aside className="w-64 bg-[#FBFBFB] border-r border-zinc-200/60 flex flex-col hidden md:flex">
       <div className="h-16 flex items-center px-6 border-b border-zinc-200/60">

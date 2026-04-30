@@ -74,7 +74,7 @@ export default function PedidosPage() {
   const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return; // No intentar conectar sin credenciales reales
+    if (!isSupabaseConfigured) return; 
 
     const channel = supabase
       .channel('schema-db-changes')
@@ -104,7 +104,6 @@ export default function PedidosPage() {
       p.id === pedidoId ? { ...p, conductor: driverName, estado: "asignado" } : p
     ));
     setAssigningId(null);
-    // Actualizar también el modal de detalle si está abierto
     if (detailPedido?.id === pedidoId) {
       setDetailPedido((prev: any) => ({ ...prev, conductor: driverName, estado: "asignado" }));
     }
@@ -123,9 +122,6 @@ export default function PedidosPage() {
     e.preventDefault();
     setSavingOrder(true);
 
-    // TODO: Supabase insert cuando esté configurado:
-    // await supabase.from('pedidos').insert({ ... });
-
     const productoSeleccionado = PRODUCTOS.find(p => p.value === form.producto)!;
     const newId = String(pedidos.length + 10);
 
@@ -139,7 +135,7 @@ export default function PedidosPage() {
         estado: "pendiente",
         conductor: null,
         total: productoSeleccionado.precio,
-        producto: productoSeleccionado.label.split(" — ")[0], // ej: "Balón Normal 10kg"
+        producto: productoSeleccionado.label.split(" — ")[0],
         fecha: "Justo ahora",
         metodo_pago: form.metodo_pago,
       }, ...prev]);
@@ -152,7 +148,7 @@ export default function PedidosPage() {
 
   return (
     <>
-      <div className="space-y-6 animate-in fade-in duration-500 max-w-7xl">
+      <div className="p-8 space-y-6 animate-in fade-in duration-500 max-w-7xl">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-zinc-900 tracking-tight">Pedidos en vivo</h1>
@@ -250,35 +246,19 @@ export default function PedidosPage() {
         </div>
       </div>
 
-      {/* ── MODAL NUEVO PEDIDO ── */}
+      {/* MODAL NUEVO PEDIDO */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200"
-            onClick={() => setIsModalOpen(false)}
-          />
-
-          {/* Modal */}
+          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsModalOpen(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 animate-in zoom-in-95 fade-in duration-200 max-h-[90vh] overflow-y-auto">
-            {/* Header Modal */}
             <div className="flex items-center justify-between p-6 border-b border-zinc-100">
               <div>
                 <h2 className="text-[16px] font-bold text-zinc-900">Nuevo Pedido</h2>
                 <p className="text-[12px] text-zinc-500 mt-0.5">Ingresado manualmente desde el CRM</p>
               </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-500 transition-colors text-lg font-light"
-              >
-                ×
-              </button>
+              <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-500 transition-colors text-lg font-light">×</button>
             </div>
-
-            {/* Formulario */}
             <form onSubmit={handleCreateOrder} className="p-6 space-y-4">
-
-              {/* Canal de origen */}
               <div>
                 <label className={labelClass}>Canal de Ingreso</label>
                 <select name="origen" value={form.origen} onChange={handleFormChange} className={selectClass}>
@@ -287,8 +267,6 @@ export default function PedidosPage() {
                   <option value="manual_crm">💻 Ingreso directo CRM</option>
                 </select>
               </div>
-
-              {/* Datos del cliente */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>Nombre del Cliente *</label>
@@ -299,13 +277,10 @@ export default function PedidosPage() {
                   <input name="telefono" type="tel" value={form.telefono} onChange={handleFormChange} placeholder="999 999 999" className={inputClass} />
                 </div>
               </div>
-
-              {/* Dirección */}
               <div>
                 <label className={labelClass}>Dirección Exacta *</label>
                 <input name="direccion" required value={form.direccion} onChange={handleFormChange} placeholder="Ej. Av. Principal 123, Mz A Lt 5" className={inputClass} />
               </div>
-
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className={labelClass}>Distrito</label>
@@ -316,8 +291,6 @@ export default function PedidosPage() {
                   <input name="referencia" value={form.referencia} onChange={handleFormChange} placeholder="Frente a la bodega..." className={inputClass} />
                 </div>
               </div>
-
-              {/* Método de Pago */}
               <div>
                 <label className={labelClass}>Método de Pago *</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -326,23 +299,13 @@ export default function PedidosPage() {
                     { value: "yape", label: "🟣 Yape" },
                     { value: "plin", label: "🟢 Plin" },
                   ].map(op => (
-                    <button
-                      key={op.value}
-                      type="button"
-                      onClick={() => setForm(prev => ({ ...prev, metodo_pago: op.value }))}
-                      className={`h-9 rounded-lg text-[12px] font-bold border transition-all ${
-                        form.metodo_pago === op.value
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400"
-                      }`}
-                    >
+                    <button key={op.value} type="button" onClick={() => setForm(prev => ({ ...prev, metodo_pago: op.value }))}
+                      className={`h-9 rounded-lg text-[12px] font-bold border transition-all ${form.metodo_pago === op.value ? "bg-zinc-900 text-white border-zinc-900" : "bg-white text-zinc-600 border-zinc-200 hover:border-zinc-400"}`}>
                       {op.label}
                     </button>
                   ))}
                 </div>
               </div>
-
-              {/* Producto */}
               <div>
                 <label className={labelClass}>Producto *</label>
                 <select name="producto" value={form.producto} onChange={handleFormChange} className={selectClass}>
@@ -351,45 +314,28 @@ export default function PedidosPage() {
                   ))}
                 </select>
               </div>
-
-              {/* Notas */}
               <div>
                 <label className={labelClass}>Notas adicionales</label>
-                <textarea name="notas" value={form.notas} onChange={handleFormChange} placeholder="Instrucciones especiales del cliente..." rows={2}
-                  className={textareaClass}
-                />
+                <textarea name="notas" value={form.notas} onChange={handleFormChange} placeholder="Instrucciones especiales del cliente..." rows={2} className={textareaClass} />
               </div>
-
-              {/* Total preview */}
               <div className="bg-zinc-50 rounded-xl p-4 flex justify-between items-center border border-zinc-100">
                 <span className="text-[13px] text-zinc-500 font-medium">Total del pedido</span>
-                <span className="text-[18px] font-bold text-zinc-900">
-                  S/ {PRODUCTOS.find(p => p.value === form.producto)?.precio.toFixed(2)}
-                </span>
+                <span className="text-[18px] font-bold text-zinc-900">S/ {PRODUCTOS.find(p => p.value === form.producto)?.precio.toFixed(2)}</span>
               </div>
-
-              {/* Acciones */}
               <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-10 rounded-lg border border-zinc-200 text-[13px] font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">
-                  Cancelar
-                </button>
-                <button type="submit" disabled={savingOrder} className="flex-1 h-10 rounded-lg bg-zinc-900 text-white text-[13px] font-bold hover:bg-zinc-700 transition-colors disabled:opacity-60">
-                  {savingOrder ? "Guardando..." : "Crear Pedido"}
-                </button>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 h-10 rounded-lg border border-zinc-200 text-[13px] font-medium text-zinc-600 hover:bg-zinc-50 transition-colors">Cancelar</button>
+                <button type="submit" disabled={savingOrder} className="flex-1 h-10 rounded-lg bg-zinc-900 text-white text-[13px] font-bold hover:bg-zinc-700 disabled:opacity-60">{savingOrder ? "Guardando..." : "Crear Pedido"}</button>
               </div>
             </form>
           </div>
         </div>
       )}
-      {/* ── MODAL VER DETALLE ── */}
+
+      {/* MODAL VER DETALLE */}
       {detailPedido && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200"
-            onClick={() => setDetailPedido(null)}
-          />
+          <div className="absolute inset-0 bg-zinc-900/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setDetailPedido(null)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 animate-in zoom-in-95 fade-in duration-200 text-zinc-900">
-            {/* Header */}
             <div className="flex items-center justify-between p-5 border-b border-zinc-100">
               <div className="flex items-center gap-3">
                 <span className="font-mono text-zinc-400 text-[13px]">#{detailPedido.id.padStart(4, '0')}</span>
@@ -397,106 +343,39 @@ export default function PedidosPage() {
                   {estadoLabels[detailPedido.estado] || "Pendiente"}
                 </span>
               </div>
-              <button
-                onClick={() => setDetailPedido(null)}
-                className="w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 flex items-center justify-center text-zinc-500 text-lg"
-              >
-                ×
-              </button>
+              <button onClick={() => setDetailPedido(null)} className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 text-lg">×</button>
             </div>
-
-            {/* Cuerpo del detalle */}
             <div className="p-5 space-y-4">
-              {/* Info del cliente */}
               <div className="bg-zinc-50 rounded-xl p-4 space-y-2">
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Detalle del Pedido</p>
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-zinc-500">Cliente</span>
-                  <span className="font-semibold text-zinc-900">{detailPedido.cliente}</span>
-                </div>
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-zinc-500">Dirección</span>
-                  <span className="font-semibold text-zinc-900 text-right max-w-[200px]">{detailPedido.direccion}</span>
-                </div>
-                {detailPedido.producto && (
-                  <div className="flex justify-between text-[13px]">
-                    <span className="text-zinc-500">Producto</span>
-                    <span className="font-semibold text-zinc-900">🛢️ {detailPedido.producto}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-[13px]">
-                  <span className="text-zinc-500">Origen</span>
-                  <span className="font-semibold text-zinc-900">{origenLabels[detailPedido.origen] || "💻 CRM"}</span>
-                </div>
-                {detailPedido.metodo_pago && (
-                  <div className="flex justify-between text-[13px]">
-                    <span className="text-zinc-500">Pago</span>
-                    <span className="font-semibold text-zinc-900 capitalize">{detailPedido.metodo_pago}</span>
-                  </div>
-                )}
-                <div className="flex justify-between text-[13px] pt-2 border-t border-zinc-200">
-                  <span className="text-zinc-500">Total</span>
-                  <span className="font-bold text-zinc-900 text-[15px]">S/ {detailPedido.total}</span>
-                </div>
+                <div className="flex justify-between text-[13px]"><span className="text-zinc-500">Cliente</span><span className="font-semibold">{detailPedido.cliente}</span></div>
+                <div className="flex justify-between text-[13px]"><span className="text-zinc-500">Dirección</span><span className="font-semibold text-right max-w-[200px]">{detailPedido.direccion}</span></div>
+                <div className="flex justify-between text-[13px] pt-2 border-t border-zinc-200"><span className="text-zinc-500">Total</span><span className="font-bold text-zinc-900 text-[15px]">S/ {detailPedido.total}</span></div>
               </div>
-
-              {/* Driver asignado */}
               <div className="bg-zinc-50 rounded-xl p-4">
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Driver</p>
                 {detailPedido.conductor ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-sm">🚚</div>
-                    <span className="font-semibold text-zinc-900 text-[14px]">{detailPedido.conductor}</span>
-                  </div>
+                  <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-zinc-200 flex items-center justify-center text-sm">🚚</div><span className="font-semibold text-zinc-900">{detailPedido.conductor}</span></div>
                 ) : (
-                  <div className="space-y-2">
-                    <p className="text-[12px] text-zinc-500 italic">Sin asignar — selecciona un driver:</p>
-                    <div className="flex gap-2 flex-wrap">
-                      {drivers.map(d => (
-                        <button
-                          key={d.id}
-                          onClick={() => handleAssign(detailPedido.id, d.nombre)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-[12px] font-bold text-zinc-800 bg-white hover:border-zinc-400 hover:bg-zinc-50 transition-all"
-                        >
-                          <span className={`w-2 h-2 rounded-full flex-shrink-0 ${d.estado === 'libre' ? 'bg-emerald-500' : 'bg-red-400'}`} />
-                          {d.nombre}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="flex gap-2 flex-wrap">
+                    {drivers.map(d => (
+                      <button key={d.id} onClick={() => handleAssign(detailPedido.id, d.nombre)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 text-[12px] font-bold text-zinc-800 bg-white hover:bg-zinc-50">
+                        <span className={`w-2 h-2 rounded-full ${d.estado === 'libre' ? 'bg-emerald-500' : 'bg-red-400'}`} />{d.nombre}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
-
-              {/* Cambiar estado */}
               <div>
                 <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2">Cambiar Estado</p>
                 <div className="grid grid-cols-3 gap-2">
                   {Object.entries(estadoLabels).map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => handleChangeEstado(detailPedido.id, key)}
-                      className={`py-1.5 px-2 rounded-lg text-[11px] font-bold border transition-all ${
-                        detailPedido.estado === key
-                          ? "bg-zinc-900 text-white border-zinc-900"
-                          : "bg-white text-zinc-700 border-zinc-200 hover:border-zinc-400 hover:bg-zinc-50"
-                      }`}
-                    >
-                      {label}
-                    </button>
+                    <button key={key} onClick={() => handleChangeEstado(detailPedido.id, key)} className={`py-1.5 px-2 rounded-lg text-[11px] font-bold border transition-all ${detailPedido.estado === key ? "bg-zinc-900 text-white border-zinc-900" : "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50"}`}>{label}</button>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-zinc-100">
-              <button
-                onClick={() => setDetailPedido(null)}
-                className="w-full h-9 rounded-lg bg-zinc-900 text-white text-[13px] font-bold hover:bg-zinc-700 transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
+            <div className="p-4 border-t border-zinc-100"><button onClick={() => setDetailPedido(null)} className="w-full h-9 rounded-lg bg-zinc-900 text-white text-[13px] font-bold">Cerrar</button></div>
           </div>
         </div>
       )}

@@ -88,8 +88,8 @@ export default function ProductosPage() {
 
   return (
     <>
-      <div className="space-y-6 animate-in fade-in duration-500 max-w-5xl">
-        <div className="flex items-center justify-between">
+    <div className="p-8 space-y-6 animate-in fade-in duration-500 max-w-7xl">
+      <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-bold text-zinc-900 tracking-tight">Productos</h1>
             <p className="text-[13px] text-zinc-500 mt-1">

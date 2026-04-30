@@ -1,7 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase, isSupabaseConfigured } from "@repo/lib";
+import { logoutDriver } from "../actions/attendance";
+
+type DriverSession = {
+  id: string;
+  nombre: string;
+  sede: string;
+  telefono: string;
+  vehiculo: string;
+  placa: string;
+  entrada: string;
+};
 
 // Pedidos ya asignados a este driver
 const MOCK_MIS_PEDIDOS = [
@@ -9,22 +21,53 @@ const MOCK_MIS_PEDIDOS = [
   { id: "3", cliente: "Carlos Ruiz", direccion: "Jr. Pinos 890, Los Olivos", producto: "Balón 45kg", pago: "Yape", estado: "asignado" },
 ];
 
-// Pedidos pendientes sin driver — disponibles para auto-asignarse
+// Pedidos pendientes sin driver
 const MOCK_DISPONIBLES = [
   { id: "6", cliente: "Ana Silva", distrito: "Comas", direccion: "Urb. Las Flores Mz. A Lt 3", producto: "Balón 15kg", pago: "Efectivo" },
   { id: "7", cliente: "Luis Torres", distrito: "Los Olivos", direccion: "Av. Universitaria 450", producto: "Balón 10kg", pago: "Yape" },
   { id: "8", cliente: "Rosa Mendoza", distrito: "San Martín de Porres", direccion: "Jr. Independencia 234", producto: "Balón 15kg", pago: "Tarjeta" },
 ];
 
-// TODO: Reemplazar con el ID real del driver logueado
-// const DRIVER_ID = "uuid-del-driver-logueado";
+function formatDuration(entradaISO: string): string {
+  const entrada = new Date(entradaISO);
+  const diffMs = Date.now() - entrada.getTime();
+  const h = Math.floor(diffMs / 3600000);
+  const m = Math.floor((diffMs % 3600000) / 60000);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
 
 export default function DriverAppPage() {
+  const router = useRouter();
+  const [session, setSession] = useState<DriverSession | null>(null);
+  const [elapsed, setElapsed] = useState("");
+  const [showEndShift, setShowEndShift] = useState(false);
   const [misPedidos, setMisPedidos] = useState(MOCK_MIS_PEDIDOS);
   const [disponibles, setDisponibles] = useState(MOCK_DISPONIBLES);
 
+  // Verificar sesión y redirigir si no hay una
   useEffect(() => {
-    if (!isSupabaseConfigured) return; // No intentar conectar sin credenciales reales
+    const raw = localStorage.getItem("driver_session");
+    if (!raw) { router.replace("/driver/login"); return; }
+    setSession(JSON.parse(raw));
+  }, [router]);
+
+  // Reloj del turno — actualiza cada 30s
+  useEffect(() => {
+    if (!session) return;
+    setElapsed(formatDuration(session.entrada));
+    const interval = setInterval(() => setElapsed(formatDuration(session.entrada)), 30000);
+    return () => clearInterval(interval);
+  }, [session]);
+
+  const handleEndShift = async () => {
+    if (!session) return;
+    await logoutDriver(session.id);
+    localStorage.removeItem("driver_session");
+    router.replace("/driver/login");
+  };
+  useEffect(() => {
+    if (!isSupabaseConfigured) return; 
+
     // ─────────────────────────────────────────────────────────────
     // REALTIME: Escuchar pedidos nuevos (estado: "pendiente")
     // Cuando el cliente hace un pedido en la web, aparece aquí automáticamente.
@@ -64,7 +107,7 @@ export default function DriverAppPage() {
             setDisponibles(prev => prev.filter(p => p.id !== actualizado.id));
           }
 
-          // TODO: Si el conductor_id === DRIVER_ID, moverlo a "Mis Pedidos"
+          // TODO: Si el conductor_id === session?.id, moverlo a "Mis Pedidos"
         }
       )
       .subscribe();
@@ -72,7 +115,7 @@ export default function DriverAppPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [session]);
 
   const handleMarcarEntregado = async (id: string) => {
     // TODO: Descomentar cuando Supabase esté configurado:
@@ -109,7 +152,16 @@ export default function DriverAppPage() {
   const completadosHoy = 12;
   const enRuta = misPedidos.filter(p => p.estado === "en_camino").length;
 
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-[#003223] flex items-center justify-center">
+        <div className="text-[#F5EBE1]/60 text-[14px]">Cargando...</div>
+      </div>
+    );
+  }
+
   return (
+    <>
     <div className="min-h-screen bg-[#F5EBE1] flex justify-center">
       <div className="w-full max-w-md bg-white min-h-screen shadow-2xl shadow-black/5 relative flex flex-col text-zinc-900">
         
@@ -117,13 +169,20 @@ export default function DriverAppPage() {
         <header className="bg-[#003223] text-[#F5EBE1] p-5 pb-8 rounded-b-[2rem] shadow-md z-10">
           <div className="flex justify-between items-center mb-5">
             <div>
-              <p className="text-[#F5EBE1]/60 text-[11px] uppercase font-bold tracking-widest">Modo Driver</p>
-              <h1 className="text-xl font-black mt-0.5">Hola, Pedro 👋</h1>
+              <p className="text-[#F5EBE1]/60 text-[11px] uppercase font-bold tracking-widest">Turno Activo · {elapsed}</p>
+              <h1 className="text-xl font-black mt-0.5">Hola, {session.nombre.split(" ")[0]} 👋</h1>
+              <p className="text-[#F5EBE1]/50 text-[11px] mt-0.5">{session.vehiculo} · {session.placa}</p>
             </div>
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-2">
               <div className="w-11 h-11 rounded-full bg-[#8CC850] flex items-center justify-center border-[3px] border-[#001f16] shadow-lg">
                 <span className="text-white text-[9px] font-black">Activo</span>
               </div>
+              <button
+                onClick={() => setShowEndShift(true)}
+                className="text-[9px] font-bold text-[#F5EBE1]/50 hover:text-red-400 transition-colors uppercase tracking-wide"
+              >
+                Cerrar turno
+              </button>
             </div>
           </div>
 
@@ -266,5 +325,39 @@ export default function DriverAppPage() {
         </main>
       </div>
     </div>
+
+    {/* Modal Cerrar Turno */}
+    {showEndShift && (
+      <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowEndShift(false)} />
+        <div className="relative bg-white rounded-t-3xl sm:rounded-3xl p-7 w-full max-w-sm text-zinc-900 animate-in slide-in-from-bottom-4 duration-300">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+              🌙
+            </div>
+            <h2 className="text-[18px] font-black text-zinc-900">Cerrar Turno</h2>
+            <p className="text-[13px] text-zinc-500 mt-1">
+              Llevas <span className="font-bold text-zinc-900">{elapsed}</span> trabajando hoy.
+            </p>
+            <p className="text-[12px] text-zinc-400 mt-2">Se registrará tu hora de salida automáticamente.</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowEndShift(false)}
+              className="flex-1 h-12 rounded-2xl border-2 border-zinc-200 text-zinc-700 font-bold text-[14px] hover:bg-zinc-50"
+            >
+              Seguir trabajando
+            </button>
+            <button
+              onClick={handleEndShift}
+              className="flex-1 h-12 rounded-2xl bg-red-500 text-white font-black text-[14px] hover:bg-red-600 shadow-lg shadow-red-500/25"
+            >
+              Sí, cerrar turno
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }
