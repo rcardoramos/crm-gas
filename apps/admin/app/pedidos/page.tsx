@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@repo/lib";
+import { supabase, isSupabaseConfigured } from "@repo/lib";
 
 const MOCK_PEDIDOS = [
   { id: "1", cliente: "Juan Pérez", sede: "Lima Norte", origen: "web", direccion: "Av. Principal 123", estado: "pendiente", conductor: null, total: 45, producto: "Balón Normal 10kg", fecha: "Hace 2 min" },
@@ -74,6 +74,8 @@ export default function PedidosPage() {
   const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return; // No intentar conectar sin credenciales reales
+
     const channel = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pedidos' }, (payload) => {

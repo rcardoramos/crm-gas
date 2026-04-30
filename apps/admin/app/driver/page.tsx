@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { supabase } from "@repo/lib";
+import { supabase, isSupabaseConfigured } from "@repo/lib";
 
 // Pedidos ya asignados a este driver
 const MOCK_MIS_PEDIDOS = [
@@ -24,6 +24,7 @@ export default function DriverAppPage() {
   const [disponibles, setDisponibles] = useState(MOCK_DISPONIBLES);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return; // No intentar conectar sin credenciales reales
     // ─────────────────────────────────────────────────────────────
     // REALTIME: Escuchar pedidos nuevos (estado: "pendiente")
     // Cuando el cliente hace un pedido en la web, aparece aquí automáticamente.
