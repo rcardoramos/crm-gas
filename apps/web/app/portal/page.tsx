@@ -1,19 +1,16 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/button";
-
-const MOCK_PRODUCTS = [
-  { id: "10kg", name: "Balón Normal 10kg", price: 45.00, icon: "🟢" },
-  { id: "15kg", name: "Balón Premium 15kg", price: 65.00, icon: "🔵" },
-  { id: "45kg", name: "Balón Industrial 45kg", price: 135.00, icon: "🏭" },
-];
+import { MOCK_PRODUCTOS } from "@repo/lib";
 
 export default function PortalDashboard() {
-  // Mocking an active order
   const activeOrder = {
     id: "921",
     status: "En Camino",
     time: "15 min aprox.",
   };
+
+  // Solo productos activos en el dashboard
+  const productosActivos = MOCK_PRODUCTOS.filter(p => p.activo);
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -33,7 +30,7 @@ export default function PortalDashboard() {
       </header>
 
       <main className="p-5 space-y-6 -mt-4 relative z-10">
-        
+
         {/* Active Order Widget */}
         <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-[#003223]/10 p-5 flex flex-col gap-3">
           <div className="flex justify-between items-center">
@@ -53,21 +50,24 @@ export default function PortalDashboard() {
           </div>
         </div>
 
-        {/* Product Catalog */}
+        {/* Product Catalog — desde catálogo compartido */}
         <div className="flex justify-between items-end px-1 pt-2">
           <h2 className="text-[15px] font-bold text-[#003223]">Nuestros Productos</h2>
         </div>
-        
+
         <div className="space-y-3">
-          {MOCK_PRODUCTS.map((prod) => (
+          {productosActivos.map((prod) => (
             <div key={prod.id} className="bg-white border border-[#003223]/10 rounded-2xl p-3 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center justify-between group">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-[#F5EBE1] rounded-xl flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
                   {prod.icon}
                 </div>
                 <div>
-                  <h3 className="text-[14px] font-bold text-[#003223]">{prod.name}</h3>
-                  <span className="font-bold text-[#003223]/60 text-[12px]">S/ {prod.price.toFixed(2)}</span>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-[14px] font-bold text-[#003223]">{prod.nombre}</h3>
+                    {prod.destacado && <span className="text-[9px] font-black bg-amber-100 text-amber-700 px-1 py-0.5 rounded-md">⭐</span>}
+                  </div>
+                  <span className="font-bold text-[#003223]/60 text-[12px]">S/ {prod.precio.toFixed(2)}</span>
                 </div>
               </div>
               <Button size="sm" asChild className="rounded-lg h-8 px-4 text-[12px] font-bold bg-[#003223] hover:bg-[#001f16] text-[#F5EBE1]">
