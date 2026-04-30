@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/button";
 
+const MOCK_PRODUCTS = [
+  { id: "10kg", name: "Balón Normal 10kg", price: 45.00, icon: "🟢" },
+  { id: "15kg", name: "Balón Premium 15kg", price: 65.00, icon: "🔵" },
+  { id: "45kg", name: "Balón Industrial 45kg", price: 135.00, icon: "🏭" },
+];
+
 export default function PortalDashboard() {
   // Mocking an active order
   const activeOrder = {
@@ -47,23 +53,28 @@ export default function PortalDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <h2 className="text-[15px] font-bold text-zinc-900 px-1 pt-2">¿Qué necesitas hoy?</h2>
+        {/* Product Catalog */}
+        <div className="flex justify-between items-end px-1 pt-2">
+          <h2 className="text-[15px] font-bold text-zinc-900">Nuestros Productos</h2>
+        </div>
         
-        <div className="grid grid-cols-2 gap-4">
-          <Link href="/pedido" className="bg-white border border-zinc-200/80 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-md transition-shadow group">
-            <div className="w-14 h-14 bg-zinc-100 rounded-full flex items-center justify-center text-2xl group-hover:bg-zinc-200 transition-colors">
-              🔥
+        <div className="space-y-3">
+          {MOCK_PRODUCTS.map((prod) => (
+            <div key={prod.id} className="bg-white border border-zinc-200/80 rounded-2xl p-3 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center justify-between group">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-zinc-50 rounded-xl flex items-center justify-center text-2xl group-hover:scale-105 transition-transform">
+                  {prod.icon}
+                </div>
+                <div>
+                  <h3 className="text-[14px] font-bold text-zinc-900">{prod.name}</h3>
+                  <span className="font-bold text-zinc-500 text-[12px]">S/ {prod.price.toFixed(2)}</span>
+                </div>
+              </div>
+              <Button size="sm" asChild className="rounded-lg h-8 px-4 text-[12px] font-bold bg-zinc-900 hover:bg-zinc-800">
+                <Link href={`/portal/checkout?prod=${prod.id}`}>Pedir</Link>
+              </Button>
             </div>
-            <span className="text-[13px] font-medium text-zinc-900 text-center">Pedir de<br/>nuevo</span>
-          </Link>
-          
-          <Link href="/portal/productos" className="bg-white border border-zinc-200/80 rounded-2xl p-4 flex flex-col items-center justify-center gap-3 shadow-sm hover:shadow-md transition-shadow group">
-            <div className="w-14 h-14 bg-zinc-100 rounded-full flex items-center justify-center text-2xl group-hover:bg-zinc-200 transition-colors">
-              🛍️
-            </div>
-            <span className="text-[13px] font-medium text-zinc-900 text-center">Ver<br/>Catálogo</span>
-          </Link>
+          ))}
         </div>
 
         {/* Banner Promo */}

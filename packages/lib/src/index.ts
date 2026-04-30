@@ -6,3 +6,4 @@ export const createSupabaseClient = (supabaseUrl: string, supabaseAnonKey: strin
 }
 
 export * from './types'
+export * from './supabase'

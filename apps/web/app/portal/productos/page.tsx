@@ -27,7 +27,7 @@ export default function PortalProductos() {
               <div className="flex items-center justify-between mt-3">
                 <span className="font-bold text-zinc-900">S/ {prod.price.toFixed(2)}</span>
                 <Button size="sm" asChild className="rounded-lg h-7 px-3 text-[11px] font-bold bg-zinc-900 hover:bg-zinc-800">
-                  <Link href={`/pedido?prod=${prod.id}`}>Pedir</Link>
+                  <Link href={`/portal/checkout?prod=${prod.id}`}>Pedir</Link>
                 </Button>
               </div>
             </div>

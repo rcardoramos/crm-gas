@@ -31,8 +31,8 @@ export default function RootLayout({
             <Link href="/pedidos" className="flex items-center px-3 py-2 text-[14px] font-medium rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 transition-colors">
               Pedidos
             </Link>
-            <Link href="/conductores" className="flex items-center px-3 py-2 text-[14px] font-medium rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 transition-colors">
-              Conductores
+            <Link href="/drivers" className="flex items-center px-3 py-2 text-[14px] font-medium rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 transition-colors">
+              Drivers
             </Link>
             <Link href="/clientes" className="flex items-center px-3 py-2 text-[14px] font-medium rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40 transition-colors">
               Clientes
