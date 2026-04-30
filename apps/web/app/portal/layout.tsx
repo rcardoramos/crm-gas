@@ -19,7 +19,7 @@ export default function PortalLayout({
   ];
 
   return (
-    <div className="bg-zinc-50 min-h-screen flex justify-center">
+    <div className="bg-[#F5EBE1] min-h-screen flex justify-center">
       {/* Mobile App Container */}
       <div className={`w-full max-w-md bg-white min-h-screen shadow-2xl shadow-black/5 relative flex flex-col overflow-hidden ${isCheckout ? '' : 'pb-20'}`}>
         
@@ -30,7 +30,7 @@ export default function PortalLayout({
 
         {/* Bottom Navigation */}
         {!isCheckout && (
-          <nav className="absolute bottom-0 w-full bg-white border-t border-zinc-100 flex justify-around items-center h-16 z-50">
+          <nav className="absolute bottom-0 w-full bg-white border-t border-[#003223]/10 flex justify-around items-center h-16 z-50">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -38,7 +38,7 @@ export default function PortalLayout({
                   key={item.name} 
                   href={item.href}
                   className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-colors ${
-                    isActive ? "text-zinc-900" : "text-zinc-400 hover:text-zinc-600"
+                    isActive ? "text-[#FF6400]" : "text-[#003223]/40 hover:text-[#003223]/70"
                   }`}
                 >
                   <span className="text-xl filter grayscale" style={{ filter: isActive ? "none" : "grayscale(100%) opacity(50%)" }}>
