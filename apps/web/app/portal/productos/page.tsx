@@ -1,14 +1,25 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/button";
-import { MOCK_PRODUCTOS } from "@repo/lib";
+import fs from "fs";
+import path from "path";
+import type { Producto } from "@repo/lib";
 
-export default function PortalProductos() {
-  // Mostrar solo productos activos
-  const productosActivos = MOCK_PRODUCTOS.filter(p => p.activo);
+async function getProductos(): Promise<Producto[]> {
+  try {
+    const filePath = path.join(process.cwd(), "..", "..", "packages", "lib", "data", "products.json");
+    const raw = fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(raw) as Producto[];
+  } catch {
+    return [];
+  }
+}
+
+export default async function PortalProductos() {
+  const todos = await getProductos();
+  const productosActivos = todos.filter(p => p.activo);
 
   return (
     <div className="animate-in slide-in-from-right-8 fade-in duration-300">
-      {/* Header Fijo Estilo App */}
       <header className="bg-white border-b border-[#003223]/10 p-4 sticky top-0 z-20 flex items-center justify-center">
         <h1 className="text-[16px] font-bold text-[#003223]">Nuestros Productos</h1>
       </header>
@@ -22,11 +33,7 @@ export default function PortalProductos() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h2 className="text-[15px] font-bold text-[#003223] leading-tight">{prod.nombre}</h2>
-                {prod.destacado && (
-                  <span className="text-[9px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md border border-amber-200">
-                    ⭐ TOP
-                  </span>
-                )}
+                {prod.destacado && <span className="text-[9px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-md border border-amber-200">⭐ TOP</span>}
               </div>
               <p className="text-[11px] text-[#003223]/60 mt-0.5 leading-snug">{prod.descripcion}</p>
               <div className="flex items-center justify-between mt-3">
@@ -39,10 +46,17 @@ export default function PortalProductos() {
           </div>
         ))}
 
+        {productosActivos.length === 0 && (
+          <div className="text-center py-16 text-[#003223]/40">
+            <span className="text-4xl block mb-3">📦</span>
+            <p className="text-[14px] font-bold">Sin productos disponibles</p>
+          </div>
+        )}
+
         <div className="mt-8 bg-[#003223] rounded-2xl p-5 text-center">
           <span className="text-2xl mb-2 block">🔧</span>
           <h3 className="text-[13px] font-bold text-[#F5EBE1]">¿Necesitas instalación?</h3>
-          <p className="text-[11px] text-[#F5EBE1]/70 mt-1">Todos nuestros pedidos incluyen instalación y revisión de fugas sin costo extra.</p>
+          <p className="text-[11px] text-[#F5EBE1]/70 mt-1">Todos nuestros pedidos incluyen instalación sin costo extra.</p>
         </div>
       </main>
     </div>

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "10kg",
+    "nombre": "Balón Normal 10kg",
+    "descripcion": "Ideal para el hogar. Uso estándar de cocina.",
+    "precio": 45,
+    "icon": "🟢",
+    "activo": true,
+    "destacado": false
+  },
+  {
+    "id": "15kg",
+    "nombre": "Balón Premium 15kg",
+    "descripcion": "Mayor duración para familias grandes.",
+    "precio": 65,
+    "icon": "🔵",
+    "activo": true,
+    "destacado": true
+  },
+  {
+    "id": "45kg",
+    "nombre": "Balón Industrial 45kg",
+    "descripcion": "Para restaurantes y negocios.",
+    "precio": 135,
+    "icon": "🏭",
+    "activo": true,
+    "destacado": false
+  },
+  {
+    "id": "prod-1777523584904",
+    "nombre": "TEST",
+    "descripcion": "ASDASDASD",
+    "precio": 11.5,
+    "icon": "🟡",
+    "activo": true,
+    "destacado": false
+  }
+]

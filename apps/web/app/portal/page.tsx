@@ -1,16 +1,24 @@
 import Link from "next/link";
 import { Button } from "@repo/ui/button";
-import { MOCK_PRODUCTOS } from "@repo/lib";
+import fs from "fs";
+import path from "path";
+import type { Producto } from "@repo/lib";
 
-export default function PortalDashboard() {
-  const activeOrder = {
-    id: "921",
-    status: "En Camino",
-    time: "15 min aprox.",
-  };
+async function getProductos(): Promise<Producto[]> {
+  try {
+    const filePath = path.join(process.cwd(), "..", "..", "packages", "lib", "data", "products.json");
+    const raw = fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(raw) as Producto[];
+  } catch {
+    return [];
+  }
+}
 
-  // Solo productos activos en el dashboard
-  const productosActivos = MOCK_PRODUCTOS.filter(p => p.activo);
+export default async function PortalDashboard() {
+  const todos = await getProductos();
+  const productosActivos = todos.filter(p => p.activo);
+
+  const activeOrder = { id: "921", status: "En Camino", time: "15 min aprox." };
 
   return (
     <div className="animate-in fade-in duration-500">
@@ -21,11 +29,9 @@ export default function PortalDashboard() {
             <h1 className="text-xl font-bold">Hola, Ricardo 👋</h1>
             <p className="text-[#F5EBE1]/70 text-[13px] mt-0.5">Socio Premium</p>
           </div>
-          <div className="text-right">
-            <span className="bg-[#001f16] text-[#FF6400] text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border border-[#FF6400]/30 shadow-inner">
-              ⭐ 450 pts
-            </span>
-          </div>
+          <span className="bg-[#001f16] text-[#FF6400] text-[12px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1 border border-[#FF6400]/30 shadow-inner">
+            ⭐ 450 pts
+          </span>
         </div>
       </header>
 
@@ -35,14 +41,10 @@ export default function PortalDashboard() {
         <div className="bg-white rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-[#003223]/10 p-5 flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <span className="text-[12px] font-bold text-[#003223]/50 uppercase tracking-wider">Tu Pedido #{activeOrder.id}</span>
-            <span className="bg-[#FF6400]/10 text-[#FF6400] text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide animate-pulse">
-              {activeOrder.status}
-            </span>
+            <span className="bg-[#FF6400]/10 text-[#FF6400] text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide animate-pulse">{activeOrder.status}</span>
           </div>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#FF6400]/10 rounded-full flex items-center justify-center text-xl shrink-0">
-              🚚
-            </div>
+            <div className="w-12 h-12 bg-[#FF6400]/10 rounded-full flex items-center justify-center text-xl shrink-0">🚚</div>
             <div>
               <p className="text-[14px] font-bold text-[#003223] leading-tight">El driver está cerca.</p>
               <p className="text-[12px] text-[#003223]/60 mt-1">Llegada estimada en <span className="font-bold text-[#003223]">{activeOrder.time}</span></p>
@@ -50,7 +52,7 @@ export default function PortalDashboard() {
           </div>
         </div>
 
-        {/* Product Catalog — desde catálogo compartido */}
+        {/* Product Catalog */}
         <div className="flex justify-between items-end px-1 pt-2">
           <h2 className="text-[15px] font-bold text-[#003223]">Nuestros Productos</h2>
         </div>
@@ -87,11 +89,8 @@ export default function PortalDashboard() {
             </Button>
           </div>
           <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-[#8CC850] opacity-40 rounded-full blur-2xl"></div>
-          <div className="absolute -right-4 -bottom-4 text-6xl opacity-90 transform -rotate-12">
-            🎟️
-          </div>
+          <div className="absolute -right-4 -bottom-4 text-6xl opacity-90 transform -rotate-12">🎟️</div>
         </div>
-
       </main>
     </div>
   );
